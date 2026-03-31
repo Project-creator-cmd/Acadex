@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/userController');
+const ctrl = require('../controllers/userController');
 const { protect, authorize } = require('../middleware/auth');
 
-router.get('/profile/:id', protect, userController.getUserProfile);
-router.get('/students', protect, authorize('faculty', 'admin', 'placement'), userController.getStudents);
+// Must be before /:id routes
+router.get('/students', protect, authorize('faculty', 'admin', 'placement'), ctrl.getStudents);
+
+router.get('/:id/score', protect, ctrl.getUserScore);
+router.get('/profile/:id', protect, ctrl.getUserProfile);
 
 module.exports = router;

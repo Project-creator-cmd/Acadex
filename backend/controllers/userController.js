@@ -1,28 +1,46 @@
 const User = require('../models/User');
 const Achievement = require('../models/Achievement');
 
-// @desc    Get user profile
-// @route   GET /api/users/profile/:id
-// @access  Private
+// GET /api/users/profile/:id
 exports.getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-
-    // Get achievements
-    const achievements = await Achievement.find({ 
-      userId: req.params.id, 
-      status: 'approved' 
+    const achievements = await Achievement.find({
+      userId: req.params.id,
+      status: 'admin_approved'
     }).sort('-createdAt');
 
-    res.json({ 
-      success: true, 
+    res.json({ success: true, data: { user, achievements } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET /api/users/:id/score
+exports.getUserScore = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('name email department totalScore achievementsCount placementReady');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    // Verify score by summing admin_approved achievements
+    const scoreData = await Achievement.aggregate([
+      { $match: { userId: user._id, status: 'admin_approved' } },
+      { $group: { _id: null, total: { $sum: '$score' }, count: { $sum: 1 } } }
+    ]);
+
+    const computed = scoreData[0] || { total: 0, count: 0 };
+
+    res.json({
+      success: true,
       data: {
-        user,
-        achievements
+        userId: user._id,
+        name: user.name,
+        department: user.department,
+        totalScore: computed.total,
+        achievementsCount: computed.count,
+        placementReady: computed.total >= 50
       }
     });
   } catch (error) {
@@ -30,23 +48,14 @@ exports.getUserProfile = async (req, res) => {
   }
 };
 
-// @desc    Get all students
-// @route   GET /api/users/students
-// @access  Private (Faculty/Admin)
+// GET /api/users/students
 exports.getStudents = async (req, res) => {
   try {
-    let filter = { role: 'student' };
+    const filter = { role: 'student' };
+    if (req.user.role === 'faculty') filter.department = req.user.department;
+    else if (req.query.department) filter.department = req.query.department;
 
-    if (req.user.role === 'faculty') {
-      filter.department = req.user.department;
-    } else if (req.query.department) {
-      filter.department = req.query.department;
-    }
-
-    const students = await User.find(filter)
-      .select('-password')
-      .sort('-totalScore');
-
+    const students = await User.find(filter).select('-password').sort('-totalScore');
     res.json({ success: true, count: students.length, data: students });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

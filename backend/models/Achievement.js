@@ -8,17 +8,12 @@ const achievementSchema = new mongoose.Schema({
   },
   title: {
     type: String,
-    required: [true, 'Please provide a title'],
+    required: [true, 'Title is required'],
     trim: true
   },
   type: {
     type: String,
-    enum: ['hackathon', 'workshop', 'internship', 'certification', 'competition', 'sports', 'cultural', 'research', 'patent', 'conference'],
-    required: true
-  },
-  category: {
-    type: String,
-    enum: ['participation', 'winner', 'runner-up', 'publication', 'granted'],
+    enum: ['participation', 'certification', 'internship', 'research', 'winner', 'hackathon', 'workshop', 'competition', 'sports', 'cultural', 'patent', 'conference'],
     required: true
   },
   level: {
@@ -28,32 +23,55 @@ const achievementSchema = new mongoose.Schema({
   },
   organizer: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
   date: {
     type: Date,
     required: true
   },
   description: {
-    type: String
+    type: String,
+    trim: true
   },
-  certificateUrl: {
+  file_url: {
     type: String,
     required: true
   },
+  // Two-step verification workflow
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected'],
+    enum: ['pending', 'faculty_approved', 'admin_approved', 'rejected'],
     default: 'pending'
   },
-  verifiedBy: {
+  // Faculty verification
+  facultyVerifiedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
+  facultyRemarks: {
+    type: String
+  },
+  facultyVerifiedAt: {
+    type: Date
+  },
+  // Admin verification
+  adminVerifiedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  adminRemarks: {
+    type: String
+  },
+  adminVerifiedAt: {
+    type: Date
+  },
+  // General remarks (for rejection at any stage)
   remarks: {
     type: String
   },
-  points: {
+  // Score only set after admin_approved
+  score: {
     type: Number,
     default: 0
   },
@@ -65,8 +83,8 @@ const achievementSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for faster queries
 achievementSchema.index({ userId: 1, status: 1 });
-achievementSchema.index({ department: 1 });
+achievementSchema.index({ department: 1, status: 1 });
+achievementSchema.index({ status: 1 });
 
 module.exports = mongoose.model('Achievement', achievementSchema);

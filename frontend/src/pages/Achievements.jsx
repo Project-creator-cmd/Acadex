@@ -40,7 +40,6 @@ const Achievements = () => {
   const filteredAchievements = filter === 'all' 
     ? achievements 
     : achievements.filter(a => a.status === filter)
-
   if (loading) {
     return (
       <Layout>
@@ -57,18 +56,18 @@ const Achievements = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Achievements</h1>
           
-          <div className="flex gap-2">
-            {['all', 'approved', 'pending', 'rejected'].map((status) => (
+          <div className="flex gap-2 flex-wrap">
+            {['all', 'admin_approved', 'faculty_approved', 'pending', 'rejected'].map((status) => (
               <button
                 key={status}
                 onClick={() => setFilter(status)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
                   filter === status
                     ? 'bg-primary-600 text-white'
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >
-                {status.charAt(0).toUpperCase() + status.slice(1)}
+                {status === 'all' ? 'All' : status.replace('_', ' ')}
               </button>
             ))}
           </div>
@@ -108,13 +107,15 @@ const Achievements = () => {
                       </div>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      achievement.status === 'approved' 
+                      achievement.status === 'admin_approved' 
                         ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                        : achievement.status === 'faculty_approved'
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
                         : achievement.status === 'pending'
                         ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
                         : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
                     }`}>
-                      {achievement.status}
+                      {achievement.status.replace('_', ' ')}
                     </span>
                   </div>
 
@@ -145,7 +146,7 @@ const Achievements = () => {
 
                   <div className="mt-4 flex gap-2">
                     <a
-                      href={achievement.certificateUrl}
+                      href={achievement.file_url || achievement.certificateUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
@@ -153,8 +154,7 @@ const Achievements = () => {
                       <ExternalLink size={16} />
                       View Certificate
                     </a>
-                    {achievement.status === 'pending' && (
-                      <button
+                    {achievement.status === 'pending' && (                      <button
                         onClick={() => handleDelete(achievement._id)}
                         className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
                       >

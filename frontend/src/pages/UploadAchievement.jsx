@@ -10,8 +10,7 @@ const UploadAchievement = () => {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     title: '',
-    type: 'hackathon',
-    category: 'participation',
+    type: 'participation',
     level: 'college',
     organizer: '',
     date: '',
@@ -100,14 +99,16 @@ const UploadAchievement = () => {
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 >
+                  <option value="participation">Participation</option>
+                  <option value="certification">Certification</option>
+                  <option value="winner">Winner</option>
+                  <option value="internship">Internship</option>
+                  <option value="research">Research</option>
                   <option value="hackathon">Hackathon</option>
                   <option value="workshop">Workshop</option>
-                  <option value="internship">Internship</option>
-                  <option value="certification">Certification</option>
                   <option value="competition">Competition</option>
                   <option value="sports">Sports</option>
                   <option value="cultural">Cultural</option>
-                  <option value="research">Research</option>
                   <option value="patent">Patent</option>
                   <option value="conference">Conference</option>
                 </select>
